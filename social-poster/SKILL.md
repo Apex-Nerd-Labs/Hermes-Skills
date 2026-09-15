@@ -246,6 +246,9 @@ When posting, respect per-platform limits:
 - **Bluesky uses app passwords** (format: `xxxx-xxxx-xxxx-xxxx`), not regular passwords.
 - **Redirect URI MUST match exactly** between auth URL and token exchange POST.
 - **`state` parameter is REQUIRED for all OAuth 2.0 flows** — built into all generators.
+- **`post.py` is text-only** — any post carrying a picture needs `scripts/post_with_image.py` (same vault/config, per-platform copy from `<dir>/<platform>.md`). Verified upload recipes for X, LinkedIn, Bluesky, Mastodon and Discord are in `references/image-posts.md`.
+- **LinkedIn `/rest/posts` returns 500 for every active version on this app** (202601-202608, 2026-09-15); post images via `/v2/assets?action=registerUpload` + `/v2/ugcPosts` with `shareMediaCategory: IMAGE`. A `urn:li:image:` URN from `/rest/images` in a ugcPost fails as "not owned by the author".
+- **X returns 402 `credits depleted` regardless of code correctness** once the Pay-Per-Use balance hits zero. Auth and media upload still succeed, so diagnose in that order before touching the code.
 - **Platform setup guides may drift** as developer portals update their UIs. If a user reports a step doesn't match, verify at the official developer portal URL and update the guide.
 
 ## References
