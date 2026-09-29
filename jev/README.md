@@ -11,7 +11,7 @@ Copy-paste this to your Hermes agent (any profile):
 ```text
 I want to install the jev skill from github.com/ciberjohn/Hermes-Skills.
 Copy the whole jev/ folder - SKILL.md, README.md and every file in scripts/
-(jev-call.sh, sync-to-profiles.sh, update-from-upstream.sh) - into
+(jev-call.sh, jev-triage.sh, sync-to-profiles.sh, update-from-upstream.sh) - into
 ~/.hermes/skills/autonomous-ai-agents/jev/.
 
 Then add TYPESAFE_API_KEY to my Hermes profile .env (mint a key in the
@@ -52,9 +52,10 @@ chmod 600 ~/.hermes/.env
 | `SKILL.md` | The skill itself: primitives, state and question design, patterns, and guidance on validating performance in your domain. Upstream TypeSafe content, with an install/credential header. |
 | `README.md` | This file — install, usage, cost and safety notes. |
 | `scripts/jev-call.sh` | One-shot CLI caller. Resolves the key itself, prints JSON. `jev-call.sh` with no argument runs a health probe. |
+| `scripts/jev-triage.sh` | Route one free-text request to one of your agents. Asks four typed questions in a single call (which agent, does it need you, how much work, is there a credential in the text) and prints the answers as a line of values. Roster comes from a file or `--roster` flags, so it works for any set of agents. Needs `jq`. |
 | `scripts/sync-to-profiles.sh` | Copies this skill folder into other Hermes profiles. It **replaces** the destination (staged, then swapped; a failure leaves the old copy in place), refuses any path that resolves outside `$HERMES_ROOT/profiles`, and skips a destination that is the same directory as the source. `DRY_RUN=1` previews. |
 | `scripts/update-from-upstream.sh` | Re-pulls the upstream TypeSafe skill and compares its git blob SHA-1 with the recorded one. Fails closed on a bad download. |
-| `MANIFEST.sha256` | SHA-256 of `SKILL.md` and the three scripts - check the copy you fetched with `sha256sum -c MANIFEST.sha256`. |
+| `MANIFEST.sha256` | SHA-256 of `SKILL.md` and the four scripts - check the copy you fetched with `sha256sum -c MANIFEST.sha256`. |
 | `LICENSE` | TypeSafe's MIT license for the upstream skill body (Copyright (c) 2026 TypeSafe AI). |
 
 ## Usage Examples
@@ -86,6 +87,22 @@ SKILL=~/.hermes/skills/autonomous-ai-agents/jev
 
 Inside a Hermes session, just ask: *"Use the jev skill to check whether these 40 support tickets are urgent, then tell me which ones to answer first."*
 
+Route one request to one of your agents, with four typed answers in a single call:
+
+```bash
+SKILL=~/.hermes/skills/autonomous-ai-agents/jev
+"$SKILL/scripts/jev-triage.sh" --roster-file roster.txt \
+  'The feed cache looks stale and I am not sure the 06:00 job ran. Check it and re-fetch if it missed.'
+# agent:        uhura
+#   runner-up:  scotty 27%, spock 0%, ...
+#   confidence: 69%
+# needs you:    16%
+# depth:        1.34  level 1
+# secret:       2%
+```
+
+The roster file is one `name=what that agent owns` per line, and those descriptions are the routing policy: write them as the work each agent does, not as job titles. Add `--raw` for the JSON.
+
 ## Cost and Safety
 
 - **The key stays out of prompts and logs.** Store it in `.env` (mode 600, gitignored), read it from the environment, and keep it server-side in any web app. Never paste it into a chat message.
@@ -97,4 +114,4 @@ Inside a Hermes session, just ask: *"Use the jev skill to check whether these 40
 
 MIT (c) 2026 Joao Silva for this packaging. The skill body is TypeSafe AI's own agent skill (`skills/typesafe-ai/SKILL.md` from [typesafe-ai/skills](https://github.com/typesafe-ai/skills)), redistributed under their MIT license - see `LICENSE` (Copyright (c) 2026 TypeSafe AI). Kept verbatim apart from the rewritten frontmatter, the prepended header, and one dead documentation link that was refreshed. Verified against upstream git blob SHA-1 `0109513f9656917dc93cbc5ecddfca465a53ce66`; re-check any time with `scripts/update-from-upstream.sh`.
 
-**Integrity note.** The install prompt fetches the tip of `main`, so pin it to a commit you have reviewed (`git checkout <sha>`) if you want reproducibility, and check `sha256sum -c MANIFEST.sha256` after copying. The MANIFEST covers `SKILL.md` and the three scripts, not this README.
+**Integrity note.** The install prompt fetches the tip of `main`, so pin it to a commit you have reviewed (`git checkout <sha>`) if you want reproducibility, and check `sha256sum -c MANIFEST.sha256` after copying. The MANIFEST covers `SKILL.md` and the four scripts, not this README.
