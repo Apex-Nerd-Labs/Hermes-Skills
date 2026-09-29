@@ -34,6 +34,7 @@ Once installed, the skill is available as a slash command (`/medium-story`, `/sh
 | [transcribe](transcribe/) | Local speech-to-text: transcribe audio (Dropbox links, uploads, URLs) with CrisperWhisper and commit verbatim + intended transcripts to a private GitHub repo — one dated folder per audio | Fetch → transcribe (verbatim + intended) → dated folder → git commit + push | `"transcribe this Dropbox link"` |
 | [gymcoach](gymcoach/) | Personal fitness coach for a beginner (sedentary, low flexibility, 50+). Coaches via Discord — analyses gym photos, builds progressive plans | photo analysis → phased plan → track | `"gymcoach"` |
 | [joplin-brain](joplin-brain/) | Self-filing second brain on Joplin: capture anything into INBOX in under ten seconds, file it on a schedule with a deterministic classifier, and answer with grounded retrieval from your own notes | Capture → daily FILER (dry-run default) → grounded ASK → AGENT LOG | `"save this to my second brain"` |
+| [jev](jev/) | Typed, calibrated decisions from TypeSafe's Jev (System One) model — a choice, a score, or a yes/no probability instead of an LLM text call. For routing, classification, extraction, ranking, guardrails and gating | State + typed questions → `/v1/systemone` → typed answers → code branches | `"use the jev skill"` |
 
 ### Alternative: Install via Skills Hub CLI (Advanced)
 
@@ -104,13 +105,14 @@ Hermes-Skills/
 ├── ai-projects/              # Repository sync
 ├── 3dprinter/                # Flashforge AD5X headless slicing + printing
 ├── openscad-cad/             # Parametric design: sketch/dims → OpenSCAD → STL
-├── t3mp3st-autonomous-security/ # Autonomous security ops
-├── social-poster/               # Direct OAuth social media posting
-├── technical-trainer/           # Course creation pipeline
-├── transcribe/                  # Local audio transcription pipeline
-├── gymcoach/                    # Personal fitness coach skill
-├── joplin-brain/                # Self-filing second brain on Joplin
-├── uk-business-consultant/      # UK business consultant skill
+├── t3mp3st-autonomous-security/# Autonomous security ops
+├── social-poster/            # Direct OAuth social media posting
+├── technical-trainer/        # Course creation pipeline
+├── transcribe/               # Local audio transcription pipeline
+├── gymcoach/                 # Personal fitness coach skill
+├── joplin-brain/             # Self-filing second brain on Joplin
+├── uk-business-consultant/   # UK business consultant skill
+├── jev/                      # Typed decisions via TypeSafe's Jev (System One)
 ├── templates/                # Shared templates
 │   └── persona-template.md   # Writing voice template
 └── scripts/                  # Shared scripts

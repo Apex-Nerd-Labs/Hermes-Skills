@@ -1,0 +1,20 @@
+# Environment and secrets
+.env
+.env.*
+secrets/
+!env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Local state
+*.log
+*.tmp
