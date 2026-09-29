@@ -3,7 +3,7 @@ name: medium-story
 description: "Full Medium article pipeline using native Hermes tools. Research → write → 4 parallel output agents → git commit/push. Markdown is the deliverable; HTML is opt-in. Includes pre-flight infrastructure verification, revisor-methodology fact-checking, an anti-AI-slop writing pass (banned vocabulary, structural variety, accuracy rules), a mandatory AI-generated illustration reusing the recurring series character, and a mandatory step linking your own repositories."
 license: MIT
 metadata:
-  version: "1.6.0"
+  version: "1.7.0"
   tags: [writing, medium, linkedin, youtube, content, publishing, technical, blog, anti-slop]
   platforms: [linux]
   related_skills: [short-videos, technical-writing]
@@ -640,7 +640,10 @@ Semantics worth preserving if you rebuild this:
 - **Probe platform health before posting, and only post to platforms the probe reports OK.** Tokens
   expire silently, and posting into a dead token wastes the run while looking like success in a
   summary. Report the failing platform and its fix instead.
-- **A story published outside the pipeline has no folder and cannot be auto-adopted.** That is a
+- **A monitor-gated scheduler job cannot deliver to a platform whose credentials live in another profile.** If the scheduler's own profile holds no bot token for the delivery platform (common when one multiplexed gateway owns the tokens, and shared tokens are refused), the job fails its pre-run configuration check and reports `blocked_config` every tick while the underlying watcher is healthy. Deliver to a Bot Chat on a profile that does hold credentials, or to `local`, and confirm the target is a channel rather than a user id.
+- **A remembered platform-status list inside a job prompt will suppress a platform that has since been fixed.** State in the prompt that the job must trust the live probe from the fire it is running in, and label any remembered status as historical. Tokens are renewed between runs, so a list written yesterday is usually wrong today.
+- **A change-gated job costs nothing on an unchanged tick, so a manual fire is not an end-to-end delivery test.** Firing it by hand while nothing has changed returns a suppressed run: it proves the pre-run checks pass, not that delivery works.
+- **A story published from outside the pipeline has no folder and cannot be auto-adopted.** That is a
   legitimate case rather than a broken match: add a `published_index.md` row with a placeholder in
   the folder column, write the promo copy from the published article itself, and ack it.
 - **Check whether the post helper treats an unexpected response as failure.** One webhook poster
