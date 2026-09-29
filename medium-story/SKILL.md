@@ -3,7 +3,7 @@ name: medium-story
 description: "Full Medium article pipeline using native Hermes tools. Research → write → 4 parallel output agents → git commit/push. Markdown is the deliverable; HTML is opt-in. Includes pre-flight infrastructure verification, revisor-methodology fact-checking, an anti-AI-slop writing pass (banned vocabulary, structural variety, accuracy rules), a mandatory AI-generated illustration reusing the recurring series character, and a mandatory step linking your own repositories."
 license: MIT
 metadata:
-  version: "1.5.0"
+  version: "1.6.0"
   tags: [writing, medium, linkedin, youtube, content, publishing, technical, blog, anti-slop]
   platforms: [linux]
   related_skills: [short-videos, technical-writing]
@@ -665,6 +665,7 @@ Semantics worth preserving if you rebuild this:
 
 - **Describe a live capability, not an installed one.** When the piece is about how a tool is used across a multi-agent setup, build one real, small integration first, run it against real inputs, and write about that. An installed-but-unused capability described as usage is a claim the reader can check and you cannot support.
 - **A "less technical" brief means deleting the scaffolding, not only rewording it.** Data tables become a sentence carrying the headline figure, a variance section becomes the one consequence to design around, and counted figures drop to the two that carry the argument. Then re-count every companion: a plain-English pass adds words to the spoken script and characters to the social post, and both budgets are hard.
+- **Quote a figure from the raw response, never from a summary of it.** Read every number out of the machine-readable output published beside the piece, not from a rendered or human-readable summary, and never from a different invocation of the same call. Where two quantities sit close together and look alike (a probability and a confidence, a peak and a mean, a median and a mode), print them on separate labelled lines that say what each one is, because the reviewer will otherwise read one as the other. Doubly important when the underlying call is not deterministic: re-running gives different values, so only the published run is evidence.
 - **Naming your own agents is an editorial decision, not a default.** Keep agent, host and service names out of public content unless you decide otherwise deliberately. If you do include them, record the decision in the story's provenance record so a later identifier audit does not delete them as a leak; everything else about your estate stays out either way.
 
 ## References
