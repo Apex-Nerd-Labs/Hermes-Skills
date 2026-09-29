@@ -38,6 +38,7 @@ Set these in your environment before running the pipeline, or document them in a
 | `{{PUBLISHED_AUTHOR}}` | Byline name on published articles | `Your Name` |
 | `{{BYLINE_DESCRIPTION}}` | One-line role description for the byline | `Strategic Technology Leader` |
 | `{{FLEET_DOCS_PATH}}` | Path to your fleet/architecture docs for infrastructure verification | `~/docs/FLEET.md` |
+| `{{WATCHER_DIR}}` | Directory holding the publication watcher and promotion executor (Step 10) | `~/medium-promo` |
 | `{{GH_TOKEN}}` | (Optional) GitHub personal access token for API rate-limit bypass | `ghp_xxxxxxxxxxxx` |
 
 ## When to Use
@@ -553,8 +554,49 @@ Produces (in the story folder):
 terminal(command="cd {{MEDIUM_REPO_PATH}} && git add unpublished_stories/{{STORY_NUMBER}}_{{STORY_SLUG}}/ && git commit -m 'Add story {{STORY_NUMBER}}: [topic summary]' && git push", timeout=30)
 ```
 
+### Step 10: The publication trigger (promotion runs on publish, automatically)
+
+Step 2 only cross-references the feed **when the pipeline is run**, so a story published between
+runs is invisible: not moved, not indexed, and never promoted. In practice this means a published
+story can sit unrecorded indefinitely and nobody notices, because the record you would check to
+notice is the one that is stale.
+
+Arm a detector so publication triggers the rest by itself:
+
+```
+{{WATCHER_DIR}}/
+├── medium_watch.py     # monitor-mode cron script: feed -> "NO_NEW_STORIES" or NEW_STORY lines
+├── medium_promo.py     # scan / adopt / ack — moves the folder, indexes it, records results
+└── state.json          # mode 600: which publications have been accounted for
+```
+
+Wire it as a Hermes cron job in **monitor mode** (a bare script filename, resolved against the
+running profile's `scripts/` directory), scheduled every few hours. Monitor semantics do the
+budget work for you: identical output suppresses the agent entirely, so idle ticks are free.
+
+The flow the cron agent runs on a change: `scan` to list feed items the repo has not accounted
+for, `adopt` to `git mv` the folder into `published_stories/` and append the `published_index.md`
+row, then post the story's own `linkedin-post.md` (adapted per platform) through the social
+poster, verify a real share id, and only then `ack` it. Unacked stories stay due and retry.
+
+Semantics worth preserving if you rebuild this:
+
+- `seen` means *already accounted for in `published_stories/`*. Anything in the live feed that is
+  not in `seen` is an unhandled publication. Do not read `seen` as "already promoted".
+- **Seeding must not blanket-seed the feed.** Seed only the items that already match a folder in
+  `published_stories/`; a blanket seed buries exactly the backlog the seed exists to skip. Left
+  unseeded, a published-but-unfiled story surfaces on the very next tick.
+- Auto-adoption should refuse a weak match. Stories get **retitled inside the Medium editor**, so
+  the published title drifts from the folder's H1 and a fuzzy title match can be weak. Below a
+  confident threshold (0.6 works well), report it for a human instead of moving a guess.
+- The watcher must never mark anything handled. Only the `ack` step does, and only after a
+  platform returned a real share id, so a failed post is retried rather than lost.
+
 ## Pitfalls
 
+- **A publication detector must exist, or published stories go missing silently.** Step 2 only cross-references the feed when the pipeline is run, so a story published between runs is invisible to it: not moved, not indexed, never promoted. This is not hypothetical — it happens the first time a story goes out and the pipeline is not run for a few days. Read the feed's own `pubDate` values when checking cadence rather than trusting `published_index.md`, which is precisely the file that goes stale.
+- **A cron monitor script cannot be a symlink out of the scripts directory.** The runner rejects it with "Script path escapes the scripts directory via traversal". Put a real (small) wrapper file in the scripts directory that runs the implementation, and confirm the wrapper's output is byte-identical to the real script's before arming the job.
+- **A monitor's output must be byte-stable while healthy**, or every tick looks changed and the agent fires constantly. Emit a constant when nothing is new, and include a dated line only for states that should keep re-alerting.
 - **Feed cache staleness:** If `{{CACHE_PATH}}` is older than 36 hours, fetch live. If live fetch fails (403 from Medium's datacenter block), fall back to matching against `published_index.md` titles only, and flag the staleness.
 - **Story number collision:** The pipeline auto-increments from folder listings. If you manually create folders, use the next available number.
 - **HTML conversion requires `md_to_html.py`** in the repo root. Verify it exists before Step 8. If missing, skip HTML conversion and report.
