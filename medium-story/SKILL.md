@@ -3,7 +3,7 @@ name: medium-story
 description: "Full Medium article pipeline using native Hermes tools. Research → write → 4 parallel output agents → git commit/push. Markdown is the deliverable; HTML is opt-in. Includes pre-flight infrastructure verification, revisor-methodology fact-checking, an anti-AI-slop writing pass (banned vocabulary, structural variety, accuracy rules), a mandatory AI-generated illustration reusing the recurring series character, and a mandatory step linking your own repositories."
 license: MIT
 metadata:
-  version: "1.4.0"
+  version: "1.5.0"
   tags: [writing, medium, linkedin, youtube, content, publishing, technical, blog, anti-slop]
   platforms: [linux]
   related_skills: [short-videos, technical-writing]
@@ -662,6 +662,10 @@ Semantics worth preserving if you rebuild this:
 - **LinkedIn character count:** The 3,000 char limit is hard. The revisor checks it, but verify manually.
 - **Parallel agent limit (4 tasks):** `delegate_task` has `max_concurrent_children=3` by default. You cannot dispatch all 4 agents in one call. Split into Batch A (3 agents: Revisor, Heygen, LinkedIn) and Batch B (1 agent: YouTube). Both batches run concurrently — the system sees 3 + 1 across two calls, never 4 at once.
 - **Diagram PNG export for articles:** If the article references Excalidraw diagrams, the `#json=` URLs from excalidraw.com do not render inline in Medium. After generating the `.excalidraw` file, render it to a transparent-background PNG and place in the story folder. Use `[*FILENAME.png*]` as a placeholder that the user replaces with the uploaded image when publishing. The rendering approach when browser tools are unavailable: use `scripts/render_excalidraw_to_png.py` (`pip install Pillow` first). Usage: `python3 scripts/render_excalidraw_to_png.py diagram.excalidraw diagram.png`. This script parses Excaildraw JSON (rectangles with x/y/width/height/colours, text with containerId links, arrows with startBinding/endBinding) and renders to a transparent RGBA canvas.
+
+- **Describe a live capability, not an installed one.** When the piece is about how a tool is used across a multi-agent setup, build one real, small integration first, run it against real inputs, and write about that. An installed-but-unused capability described as usage is a claim the reader can check and you cannot support.
+- **A "less technical" brief means deleting the scaffolding, not only rewording it.** Data tables become a sentence carrying the headline figure, a variance section becomes the one consequence to design around, and counted figures drop to the two that carry the argument. Then re-count every companion: a plain-English pass adds words to the spoken script and characters to the social post, and both budgets are hard.
+- **Naming your own agents is an editorial decision, not a default.** Keep agent, host and service names out of public content unless you decide otherwise deliberately. If you do include them, record the decision in the story's provenance record so a later identifier audit does not delete them as a leak; everything else about your estate stays out either way.
 
 ## References
 
