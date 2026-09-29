@@ -1,9 +1,9 @@
 ---
 name: medium-story
-description: "Full Medium article pipeline using native Hermes tools. Research → write → 4 parallel output agents → HTML conversion → git commit/push. Includes pre-flight infrastructure verification step, revisor-methodology fact-checking, and an anti-AI-slop writing pass (banned vocabulary, structural variety, accuracy rules)."
+description: "Full Medium article pipeline using native Hermes tools. Research → write → 4 parallel output agents → git commit/push. Includes pre-flight infrastructure verification step, revisor-methodology fact-checking, and an anti-AI-slop writing pass (banned vocabulary, structural variety, accuracy rules)."
 license: MIT
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
   tags: [writing, medium, linkedin, youtube, content, publishing, technical, blog, anti-slop]
   platforms: [linux]
   related_skills: [short-videos, technical-writing]
@@ -19,7 +19,7 @@ Research, write, and publish technical Medium articles using Hermes tools direct
 - A **Git repository** for your Medium articles (can be private or public)
 - A **Medium account** with RSS feed enabled
 - (Optional) A **GitHub personal access token** (`$GH_TOKEN`) for API rate-limit bypass during research
-- **Python 3** with standard library (for HTML conversion, stats parsing)
+- **Python 3** with standard library (for stats parsing). Only if you ask for HTML output do you also need `markdown-it-py`.
 - `git` installed and configured for push access to your repo
 
 ## Configuration Variables
@@ -56,10 +56,12 @@ Set these in your environment before running the pipeline, or document them in a
 | `video-script.md` | Markdown (90s Heygen script) | Heygen agent (parallel) |
 | `linkedin-post.md` | Markdown → HTML | LinkedIn agent (parallel) |
 | `youtube-script.md` | Markdown (8-12min screencast) | YouTube agent (parallel) |
-| `medium-story.fragment.html` | HTML (bare, for Medium CMS) | md_to_html.py |
-| `medium-story.full.html` | HTML (styled standalone) | md_to_html.py |
-| `linkedin-post.fragment.html` | HTML (bare) | md_to_html.py |
-| `linkedin-post.full.html` | HTML (styled standalone) | md_to_html.py |
+| *(opt-in only)* `*.fragment.html`, `*.full.html` | HTML | `md_to_html.py`, only when asked |
+
+**The Markdown files are the deliverables; HTML is opt-in.** Most people paste into Medium from
+`medium-story.md`. Generating HTML by default adds files nobody opens and a commit full of markup,
+so run `md_to_html.py` only when someone asks for HTML. Markdown renders reliably everywhere;
+rendered HTML often does not.
 
 ## Repo & Conventions
 
@@ -465,6 +467,29 @@ Context rules: "robust" is banned outside engineering contexts; "empower/elevate
 - **Verification (always):** check the generated image with a vision-capable model — the generator can lie about what it drew. Confirm the character is present, requested props are present, and no text is garbled. Regenerate if any check fails.
 - **Animated assets (optional):** for diagrams and force graphs, render animated GIFs programmatically from the actual data or physics (e.g. Pillow), not an image model. Keep them abstract — no real note content, nothing sensitive.
 
+### Step 6d: Link your own repositories (mandatory)
+
+If you publish these skills, tools or projects yourself, leading readers to them is part of the
+job. A story that cites only third-party sources has done half of it. Every story carries, at
+minimum:
+
+- **A link in the body** where your work is contextually relevant. A repo line in the Sources list
+  alone is the weakest possible surface.
+- **A closing practical pointer** naming the specific folder or artefact the story is about, with
+  its licence and what is inside it.
+- **A Sources entry for the artefact itself**, separate from any generic profile or repo link.
+- **A verified count** when you invite readers over ("one of 17 skills"). Count them; never estimate.
+
+Propagate the same treatment into the Step 7 briefs: the LinkedIn post carries a link line, the
+YouTube description a paragraph plus links near the top, and the video script puts the URL in the
+caption and on the end card. None of the output agents does this unasked.
+
+Check every link resolves before publishing (`curl -sS -o /dev/null -w "%{http_code}" -L <url>`); a
+403 from a login-gated console is expected, a 404 is a broken citation. And expect the
+estate-identifier audit to flag your own account name inside your own public URLs: that rule guards
+hostnames, IPs, ports and paths, not the repository you are trying to promote. Record the exception
+in `provenance.md` so a later pass does not delete exactly the links that matter.
+
 ### Step 7: Run four parallel output agents
 
 Spawn agents via `delegate_task` in **two batches** because of the `max_concurrent_children=3` limit (configurable in `config.yaml` under `delegation.max_concurrent_children`, but default is 3).
@@ -536,14 +561,24 @@ else: print('Within target range.')
 - YouTube SEO: title + description + tags
 - British English
 
-### Step 8: HTML conversion
+### Step 8: HTML conversion (OPT-IN — skip unless asked)
+
+**Default action: do not run this step.** The Markdown files are what get pasted and published.
+Only run this when HTML output is explicitly requested.
 
 ```bash
+# only on request
 terminal(command="cd {{MEDIUM_REPO_PATH}} && python3 md_to_html.py {{STORY_NUMBER}} --select medium-story,linkedin-post", timeout=30)
 ```
 
-Produces (in the story folder):
-- `medium-story.fragment.html` — bare HTML, paste into Medium
+**Check the interpreter if the script reports a missing dependency.** `md_to_html.py` needs
+`markdown-it-py`, and on a machine with more than one Python it is easy to invoke a build that does
+not have it, producing a "markdown-it-py not installed" error that reads like a missing package when
+it is really the wrong interpreter. Confirm with `python3 -c "import markdown_it"`, and try the
+system interpreter (often `/usr/bin/python3`) before installing anything.
+
+Produces, when run (in the story folder):
+- `medium-story.fragment.html` — bare HTML
 - `medium-story.full.html` — styled standalone page
 - `linkedin-post.fragment.html` — bare HTML
 - `linkedin-post.full.html` — styled standalone page
@@ -611,7 +646,7 @@ Semantics worth preserving if you rebuild this:
 - **A monitor's output must be byte-stable while healthy**, or every tick looks changed and the agent fires constantly. Emit a constant when nothing is new, and include a dated line only for states that should keep re-alerting.
 - **Feed cache staleness:** If `{{CACHE_PATH}}` is older than 36 hours, fetch live. If live fetch fails (403 from Medium's datacenter block), fall back to matching against `published_index.md` titles only, and flag the staleness.
 - **Story number collision:** The pipeline auto-increments from folder listings. If you manually create folders, use the next available number.
-- **HTML conversion requires `md_to_html.py`** in the repo root. Verify it exists before Step 8. If missing, skip HTML conversion and report.
+- **HTML conversion is opt-in.** Do not run Step 8 unless asked: the Markdown is what gets pasted, and rendered HTML often does not survive a paste into a CMS or a repository's web view intact. When you do run it, verify `md_to_html.py` exists in the repo root and use an interpreter that has `markdown-it-py` installed.
 - **Git authentication:** If `git push` fails, the SSH key or credential helper may not be configured. Report the error — don't lose the article.
 - **Mid-sentence dashes forbidden:** The writer subagent produces em dashes despite explicit prohibition — this is a known pattern. The self-administered pre-publish checklist does NOT reliably catch them. You MUST independently grep the article body for em dashes after the writer returns (see Step 6 — Mandatory Post-Write Em Dash Verification) and fix them before dispatching output agents. Do NOT skip this step; the revisor will flag them but fixing them post-revisor wastes a round-trip.
 - **Infrastructure claims require live verification:** Before describing any service, container, or tool in the article, verify against live state. Run `docker ps` to check what's actually running. Check the last backup date. An incorrect infrastructure claim in the article will be spotted by technical readers and erodes trust. When in doubt, say "let me check" rather than guessing from memory.
