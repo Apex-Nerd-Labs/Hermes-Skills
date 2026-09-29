@@ -1,9 +1,9 @@
 ---
 name: medium-story
-description: "Full Medium article pipeline using native Hermes tools. Research → write → 4 parallel output agents → git commit/push. Includes pre-flight infrastructure verification step, revisor-methodology fact-checking, and an anti-AI-slop writing pass (banned vocabulary, structural variety, accuracy rules)."
+description: "Full Medium article pipeline using native Hermes tools. Research → write → 4 parallel output agents → git commit/push. Markdown is the deliverable; HTML is opt-in. Includes pre-flight infrastructure verification, revisor-methodology fact-checking, an anti-AI-slop writing pass (banned vocabulary, structural variety, accuracy rules), a mandatory AI-generated illustration reusing the recurring series character, and a mandatory step linking your own repositories."
 license: MIT
 metadata:
-  version: "1.3.0"
+  version: "1.4.0"
   tags: [writing, medium, linkedin, youtube, content, publishing, technical, blog, anti-slop]
   platforms: [linux]
   related_skills: [short-videos, technical-writing]
@@ -455,7 +455,12 @@ Context rules: "robust" is banned outside engineering contexts; "empower/elevate
 
 **Propagation to output agents:** the other pipeline outputs (Heygen script, LinkedIn post, YouTube script) are written under the same constraints. Include `references/anti-ai-slop-writing.md` in the delegate_task context for Agents B, C, and D in Step 7.
 
-### Step 6c: Story illustrations — OpenRouter + recurring character (Recommended for stories with images)
+### Step 6c: Story illustrations — image model + recurring character (MANDATORY for every story)
+
+**Every story gets an illustration, including stories whose other images are real screenshots.**
+It is the series marker rather than decoration: the recurring character is what makes the body of
+work read as one thing, and its absence gets noticed even when the article is otherwise complete.
+A story with six linked screenshots and no illustration still counts as unfinished.
 
 - **Load an image-generation skill** (e.g. `openrouter-image-gen`: cheap image models over a chat-completions endpoint, no GPU; the image comes back embedded in the JSON — walk the whole response recursively for `data:image` strings). Generate the hero illustration after the article is final, before packaging.
 - **The recurring character (series rule):** define ONE cartoon character and reuse it in every story illustration so the series reads as a single body of work. Example spec you can customise:
@@ -463,8 +468,11 @@ Context rules: "robust" is banned outside engineering contexts; "empower/elevate
   - Their workspace: cluttered desk, monitors with data visuals, shelves with books and electronics, warm lamp, string lights, night window
   - A recurring motif: sci-fi paraphernalia (model starship, poster) — describe generically, never ask for trademarked logos
   - Palette: cool blues/teals/purples with warm amber accents; wide 16:9; editorial cartoon style; "no real logos, no brand names, no watermark"
+- **A narrative illustration is a translation, not a diagram.** Decide what in *this* article the picture should show (the one measurement, the one judgement, the one prop that carries the argument) and ask the model for that. An illustration that could have been made before reading the article is decoration.
 - **The Illustration Engineer:** treat illustration as a dedicated role. Either spawn a subagent ("Illustration Engineer") with the character spec, the image-generation skill and the article's topic as context, or run the generator directly. The engineer owns: prompt (topic-to-image translation), generation, verification, saving `illustration.png` into the story folder, and returning the `[*FILES*: illustration.png — description]` line.
-- **Verification (always):** check the generated image with a vision-capable model — the generator can lie about what it drew. Confirm the character is present, requested props are present, and no text is garbled. Regenerate if any check fails.
+- **A style reference transfers props as well as the character.** Attaching a previous illustration to keep the character consistent also reproduces that image's room, furniture and gadgets, and an explicit "do not draw X" clause in the prompt does not override the reference. Decide deliberately: either accept the shared props as continuity for the same space and say so, or generate from the character description alone and accept some character drift. Never tell anyone a prop was avoided because the prompt excluded it.
+- **Verification (always):** check the generated image with a vision-capable model — the generator can lie about what it drew. Confirm the character is present, the requested props are present, and any text you asked for is legible and correctly spelled. Grade the text you asked for (a T-shirt slogan, a sign) and ignore incidental pseudo-text the model invents on screens and book spines, which every one of these models produces and which is invisible at article size. Regenerate if a real check fails.
+- **The AI-generated caption is mandatory on Medium.** Medium's content policy allows AI-generated images only when they are labelled, so the article must carry a sentence saying the illustration was created with an AI image creation program. Also note that AI cover art is a distribution negative: prefer a real screenshot as the cover image when one exists, and caption it.
 - **Animated assets (optional):** for diagrams and force graphs, render animated GIFs programmatically from the actual data or physics (e.g. Pillow), not an image model. Keep them abstract — no real note content, nothing sensitive.
 
 ### Step 6d: Link your own repositories (mandatory)
