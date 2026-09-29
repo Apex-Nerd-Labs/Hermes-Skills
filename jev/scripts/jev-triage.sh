@@ -105,7 +105,7 @@ jq -r --arg lane "$lane" '
   def pct: ((. * 100) | round | tostring) + "%";
   (.answers) as $a |
   "agent:        " + $lane + "  (probability " + ($a.lane.probabilities[$lane] | pct) + ")",
-  "  runner-up:  " + ([$a.lane.probabilities | to_entries[] | select(.key != $lane and .value > 0.001) | "\(.key) \(.value | pct)"] | sort_by(-(.value)) | join(", ")),
+  "  runner-up:  " + ([$a.lane.probabilities | to_entries[] | select(.key != $lane and .value > 0.001) | {k: .key, v: .value}] | sort_by(-.v) | map("\(.k) \(.v | pct)") | join(", ")),
   "  confidence: " + ($a.lane.confidence | pct) + "  (how concentrated the distribution is, NOT the winner\u0027s probability)",
   "needs you:    " + ($a.needs_captain.noul | pct),
   "depth:        " + ($a.depth.score | tostring) + "  (" + ($a.depth.probabilities | to_entries | max_by(.value) | .key | "level " + .) + ")",
