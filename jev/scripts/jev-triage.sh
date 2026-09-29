@@ -104,12 +104,11 @@ lane="$(jq -r '.answers.lane.choice // empty' <<<"$response")"
 jq -r --arg lane "$lane" '
   def pct: ((. * 100) | round | tostring) + "%";
   (.answers) as $a |
-  "agent:        " + $lane,
-  "  runner-up:  " + ([$a.lane.probabilities | to_entries[] | select(.key != $lane) | "\(.key) \(.value | pct)"] | join(", ")),
-  "  confidence: " + ($a.lane.confidence | pct),
+  "agent:        " + $lane + "  (probability " + ($a.lane.probabilities[$lane] | pct) + ")",
+  "  runner-up:  " + ([$a.lane.probabilities | to_entries[] | select(.key != $lane and .value > 0.001) | "\(.key) \(.value | pct)"] | sort_by(-(.value)) | join(", ")),
+  "  confidence: " + ($a.lane.confidence | pct) + "  (how concentrated the distribution is, NOT the winner\u0027s probability)",
   "needs you:    " + ($a.needs_captain.noul | pct),
-  "depth:        " + ($a.depth.score | tostring) + "  " + ($a.depth.probabilities | to_entries | max_by(.value) | .key | "level " + .),
-  "hook odds:    " + ($a.depth.confidence | pct) + " of the mass on one level",
+  "depth:        " + ($a.depth.score | tostring) + "  (" + ($a.depth.probabilities | to_entries | max_by(.value) | .key | "level " + .) + ")",
   "secret:       " + ($a.contains_secret.noul | pct),
   "",
   "usage:        " + (.usage.input_tokens | tostring) + " in / " + (.usage.output_tokens | tostring) + " out  (" + .model + ")"
