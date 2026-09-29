@@ -31,11 +31,17 @@ if [ -z "${TYPESAFE_API_KEY:-}" ]; then
   shopt -s nullglob
   files+=("$HOME/.hermes/profiles/"*"/.env")
 
-  key=""; src=""; others=()
+  key=""; src=""; others=(); differing=0
   for f in "${files[@]}"; do
     v="$(read_key "$f" || true)"
     [ -n "$v" ] || continue
-    if [ -z "$key" ]; then key="$v"; src="$f"; else others+=("$f"); fi
+    if [ -z "$key" ]; then
+      key="$v"; src="$f"
+    else
+      others+=("$f")
+      # only a genuine conflict is worth a warning: the same key in several files is normal
+      [ "$v" != "$key" ] && differing=1
+    fi
   done
 
   if [ -z "$key" ]; then
@@ -43,7 +49,9 @@ if [ -z "${TYPESAFE_API_KEY:-}" ]; then
     warn "mint one at https://console.typesafe.ai/keys and add 'TYPESAFE_API_KEY=<key>' to your profile .env"
     exit 2
   fi
-  [ "${#others[@]}" -gt 0 ] && warn "TYPESAFE_API_KEY is also set in: ${others[*]} (using $src)"
+  if [ "${differing:-0}" = "1" ]; then
+    warn "TYPESAFE_API_KEY DIFFERS between sources - using $src; also set in: ${others[*]}"
+  fi
   export TYPESAFE_API_KEY="$key"
 fi
 
