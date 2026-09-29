@@ -591,6 +591,18 @@ Semantics worth preserving if you rebuild this:
   confident threshold (0.6 works well), report it for a human instead of moving a guess.
 - The watcher must never mark anything handled. Only the `ack` step does, and only after a
   platform returned a real share id, so a failed post is retried rather than lost.
+- **The watcher must exclude both the accounted-for set and the handled set.** Checking only the
+  first means a story that has been moved, promoted and acked still reports as new on every tick,
+  forever.
+- **Probe platform health before posting, and only post to platforms the probe reports OK.** Tokens
+  expire silently, and posting into a dead token wastes the run while looking like success in a
+  summary. Report the failing platform and its fix instead.
+- **A story published outside the pipeline has no folder and cannot be auto-adopted.** That is a
+  legitimate case rather than a broken match: add a `published_index.md` row with a placeholder in
+  the folder column, write the promo copy from the published article itself, and ack it.
+- **Check whether the post helper treats an unexpected response as failure.** One webhook poster
+  expected an empty body and reported a failure whenever the platform returned the created object
+  instead, so a successful post read as broken; verify by reading the destination back.
 
 ## Pitfalls
 
