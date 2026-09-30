@@ -1,7 +1,7 @@
 ---
 name: proxmox-estate
 description: "Use when working on the Proxmox estate."
-version: 1.0.0
+version: 1.1.0
 author: Spock
 license: MIT
 platforms: [linux]
@@ -277,6 +277,23 @@ pre-install state, not a notional "before".
 A storage only accepts dumps if its `content` list includes `backup` — check `/etc/pve/storage.cfg`
 for the path behind each store name before assuming where dumps go. Several stores can point at the
 same underlying filesystem; look at the `path`, not the label.
+
+**`--mode snapshot` is a request, not a guarantee — check which mode actually ran.** If the guest's
+rootfs lives on a storage that cannot snapshot (a `dir` store on a plain filesystem is the common
+case; `lvmthin` and `zfspool` can), Proxmox silently falls back, and the job log states it plainly:
+
+```text
+mode failure - some volumes do not support snapshots
+trying 'suspend' mode instead
+```
+
+**Suspend mode pauses the guest** for the duration of the final delta sync. So a job configured as
+"snapshot" on the wrong storage is a short outage on a live service on *every* run, and the pause
+scales with how much the guest writes between the first and final sync — longest exactly when the
+service is busiest. Read the guest's `rootfs:` line to see which storage it is really on, and
+`pvesm status` to see which stores can snapshot. If uninterrupted availability matters, the guest
+belongs on `lvmthin`/`zfspool`; otherwise schedule for a genuinely quiet hour and accept the pause
+knowingly, rather than reporting the backup as non-disruptive.
 
 **Wire into the existing backup jobs — read, then extend; never hand-edit `/etc/pve/jobs.cfg` (it is
 pmxcfs-backed):**
