@@ -1,0 +1,8 @@
+# Local configuration and credentials — never publish
+.env
+.env.*
+*.key
+*.pem
+*.log
+local/
+.DS_Store
