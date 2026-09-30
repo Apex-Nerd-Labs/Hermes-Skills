@@ -7,7 +7,7 @@ license: MIT
 metadata:
   hermes:
     tags: [self-hosting, agents, orchestration, docker, proxmox, security]
-    related_skills: [hermes-agent, proxmox-lxc-deployment, native-mcp]
+    related_skills: [hermes-agent, proxmox-estate, native-mcp]
 ---
 
 # Paperclip Creator
