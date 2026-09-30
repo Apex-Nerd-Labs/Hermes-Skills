@@ -140,3 +140,52 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST <base>/v1/runs   # expect 400, 
 
 A 400 on an empty body means the route exists and validated the payload. A 404 means wrong base or
 wrong prefix.
+
+## 8. How an agent reaches Paperclip — local vs non-local
+
+This distinction causes a specific, expensive failure: an agent that cannot authenticate does not
+stop, it goes looking for a way in — reading files, logs and its own skill docs — which burns tokens
+on every heartbeat. One stuck agent measured roughly **113,000 input tokens per call** while flailing.
+
+| Adapter kind | Paperclip API URL | `PAPERCLIP_API_KEY` |
+|---|---|---|
+| **Local** (`claude_local`, `codex_local`, `opencode_local`, `process`, …) | the default `http://127.0.0.1:3100` is **correct** — the agent runs on Paperclip's own machine | **auto-injected** as a short-lived run JWT. Set nothing. |
+| **Non-local** (`hermes_gateway`, `openclaw_gateway`, `http`, …) | must be an address reachable **from the agent's host** | **not injected — the operator must set it**, in the agent's secrets/variables |
+
+So: an agent that lives elsewhere needs both boxes filled, and an agent that lives inside needs
+neither. The prefilled `127.0.0.1:3100` is a trap when reused for an outside agent — it means *"this
+same machine"*, and Paperclip is not on that machine.
+
+Verify from the agent's own host before blaming anything else:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' https://<paperclip-host>/api/health   # expect 200
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3100/api/health      # 000 = nothing there
+```
+
+**Approval prompts expire.** When a run trips a security prompt and nobody answers, it is cancelled
+with *"the user has NOT consented… Silence is not consent"* and the agent moves on. Watch for prompts
+while an agent is working, or the run dies quietly.
+
+## 9. Agent fields that are not editable after creation
+
+- **`role`** renders as plain text in the UI. Its valid values are a fixed set (`ceo`, `cto`, `cmo`,
+  `cfo`, `security`, `engineer`, `designer`, `pm`, `qa`, `devops`, `researcher`, `general`). There is
+  no database constraint, but the app expects a known value — use `role` for the category and
+  **`title`** (free text) for the human job title.
+- **Budgets are policies, not a field.** They live in a `budget_policies` table keyed by
+  `scope_type`/`scope_id`, with `amount` in cents, a `window_kind`, and `hard_stop_enabled`. With no
+  policy rows the UI reports *"Unlimited budget"*. A zero budget does not mean "no spend" — it means
+  nothing stops the agent.
+
+**Reading the database** (the image ships no `psql`; use the app's own `pg` module and the
+embedded-postgres defaults on port 54329):
+
+```bash
+docker exec <container> node -e '
+  const {Client}=require("/app/node_modules/.pnpm/pg@8.18.0/node_modules/pg");
+  const c=new Client({host:"127.0.0.1",port:54329,user:"paperclip",password:"paperclip",database:"paperclip"});
+  c.connect().then(()=>c.query("select name,role,title,status from agents")).then(r=>{console.log(r.rows);c.end()});'
+```
+
+Read freely; anything that **writes** should be snapshotted first and verified by reading back.

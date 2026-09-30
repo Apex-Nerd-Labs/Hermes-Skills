@@ -1,7 +1,7 @@
 ---
 name: paperclip-creator
 description: "Use when deploying Paperclip (agent-company platform). Stand up the instance in a container, wire a Hermes gateway agent as a worker, and avoid the traps that break self-hosting."
-version: 1.2.0
+version: 1.3.0
 author: Hermes Agent
 license: MIT
 metadata:
@@ -291,5 +291,6 @@ networking, the Compose project-directory rule), and the checklist are in
 - `references/backup-and-restore-drill.md` — what to back up, how to verify a backup by content,
   and how to run a restore drill without disturbing the live instance
 - `references/platform-notes.md` — deployment-mode table, the correct ordering for closing sign-up,
-  first-run behaviour, the published security history, compose variants and secret generation, and
-  operating the source-only CLI
+  first-run behaviour, the published security history, compose variants and secret generation,
+  operating the source-only CLI, **how a local agent reaches Paperclip differently from an outside
+  one**, and which agent fields cannot be edited after creation
