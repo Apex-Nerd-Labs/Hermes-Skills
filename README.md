@@ -35,6 +35,7 @@ Once installed, the skill is available as a slash command (`/medium-story`, `/sh
 | [gymcoach](gymcoach/) | Personal fitness coach for a beginner (sedentary, low flexibility, 50+). Coaches via Discord — analyses gym photos, builds progressive plans | photo analysis → phased plan → track | `"gymcoach"` |
 | [joplin-brain](joplin-brain/) | Self-filing second brain on Joplin: capture anything into INBOX in under ten seconds, file it on a schedule with a deterministic classifier, and answer with grounded retrieval from your own notes | Capture → daily FILER (dry-run default) → grounded ASK → AGENT LOG | `"save this to my second brain"` |
 | [jev](jev/) | Typed, calibrated decisions from TypeSafe's Jev (System One) model — a choice, a score, or a yes/no probability instead of an LLM text call. For routing, classification, extraction, ranking, guardrails and gating | State + typed questions → `/v1/systemone` → typed answers → code branches | `"use the jev skill"` |
+| [paperclip-creator](paperclip-creator/) | Deploys Paperclip — the open-source agent-company platform — into a container and wires a Hermes Agent profile in as a worker. Front-loads the traps that make a healthy self-hosted install look broken: a browser API that needs a secure context, an HTTPS cookie policy, organisation-prefixed routes, and adapter transport rules | Decide → deploy → HTTPS → bootstrap + lock registration → wire the Hermes gateway → verify | `"deploy paperclip"` |
 
 ### Alternative: Install via Skills Hub CLI (Advanced)
 
@@ -113,6 +114,7 @@ Hermes-Skills/
 ├── joplin-brain/             # Self-filing second brain on Joplin
 ├── uk-business-consultant/   # UK business consultant skill
 ├── jev/                      # Typed decisions via TypeSafe's Jev (System One)
+├── paperclip-creator/        # Self-hosted agent-company platform + Hermes gateway wiring
 ├── templates/                # Shared templates
 │   └── persona-template.md   # Writing voice template
 └── scripts/                  # Shared scripts
