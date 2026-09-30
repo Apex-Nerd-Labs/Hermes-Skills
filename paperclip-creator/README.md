@@ -19,7 +19,8 @@ guessing, no "try this and see".
 | `references/configuration-traps.md` | Twelve failures as **symptom → cause → fix**, each with the source location where one exists |
 | `references/hermes-gateway-adapter.md` | The `hermes_gateway` adapter contract: payload fields, the probes it makes, profile routing, network topologies |
 | `references/backup-and-restore-drill.md` | What to back up, how to verify a backup **by content**, and how to run a restore drill without disturbing the live instance |
-| `MANIFEST.sha256` | SHA-256 of `SKILL.md` and the three references — verify your copy with `sha256sum -c MANIFEST.sha256` |
+| `references/platform-notes.md` | Deployment-mode table, the correct ordering for closing sign-up, first-run behaviour, published security history, compose variants and secret generation, and operating the source-only CLI |
+| `MANIFEST.sha256` | SHA-256 of `SKILL.md` and the four references — verify your copy with `sha256sum -c MANIFEST.sha256` |
 | `README.md` | This file |
 
 ## Quick Install
@@ -29,7 +30,7 @@ Copy-paste this to your Hermes agent (any profile):
 ```text
 I want to install the paperclip-creator skill from github.com/ciberjohn/Hermes-Skills.
 Copy the whole paperclip-creator/ folder — SKILL.md, README.md, MANIFEST.sha256, and every file
-in references/ (configuration-traps.md, hermes-gateway-adapter.md, backup-and-restore-drill.md) — into
+in references/ (configuration-traps.md, hermes-gateway-adapter.md, backup-and-restore-drill.md, platform-notes.md) — into
 ~/.hermes/skills/devops/paperclip-creator/.
 
 Then confirm the copy is intact before anything else:
@@ -115,7 +116,7 @@ I get "org non existent" in Paperclip. Work out the correct URL from the source 
 
 ## Maintenance Note
 
-`MANIFEST.sha256` covers `SKILL.md` and the three files in `references/`. **If you edit any of them,
+`MANIFEST.sha256` covers `SKILL.md` and the four files in `references/`. **If you edit any of them,
 regenerate the manifest in the same commit** — a stale manifest makes a correct copy fail its own
 integrity check, which is the worst possible failure because it casts doubt on the file rather than
 the checksum:

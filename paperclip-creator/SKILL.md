@@ -1,7 +1,7 @@
 ---
 name: paperclip-creator
 description: "Use when deploying Paperclip (agent-company platform). Stand up the instance in a container, wire a Hermes gateway agent as a worker, and avoid the traps that break self-hosting."
-version: 1.1.0
+version: 1.2.0
 author: Hermes Agent
 license: MIT
 metadata:
@@ -254,6 +254,8 @@ is the only thing between an agent loop and a large bill.
 - [ ] **A restore has been drill-tested, and the restored copy was verified to contain the
       organisation** (not merely to decompress) — see `references/backup-and-restore-drill.md`
 - [ ] An off-host copy exists on a different machine, checksums compared
+- [ ] Sign-up closed *after* the operator claimed their account, and proved closed by a real probe
+      (disabling it first locks everyone out)
 - [ ] Per-agent budgets set before leaving it unattended
 
 ## 10. Prove the backup, don't assume it
@@ -288,3 +290,6 @@ networking, the Compose project-directory rule), and the checklist are in
   topology examples
 - `references/backup-and-restore-drill.md` — what to back up, how to verify a backup by content,
   and how to run a restore drill without disturbing the live instance
+- `references/platform-notes.md` — deployment-mode table, the correct ordering for closing sign-up,
+  first-run behaviour, the published security history, compose variants and secret generation, and
+  operating the source-only CLI
