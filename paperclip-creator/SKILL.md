@@ -1,7 +1,7 @@
 ---
 name: paperclip-creator
 description: "Use when deploying Paperclip (agent-company platform). Stand up the instance in a container, wire a Hermes gateway agent as a worker, and avoid the traps that break self-hosting."
-version: 1.0.0
+version: 1.1.0
 author: Hermes Agent
 license: MIT
 metadata:
@@ -251,7 +251,34 @@ is the only thing between an agent loop and a large bill.
 - [ ] `/p/<profile>/health` → 200 and `/p/<profile>/v1/runs` → 400 (not 404)
 - [ ] Agent connection test reads *"Connection successful"*
 - [ ] Backups: the guest is in at least one enabled backup job, and the in-app hourly dumps exist
+- [ ] **A restore has been drill-tested, and the restored copy was verified to contain the
+      organisation** (not merely to decompress) — see `references/backup-and-restore-drill.md`
+- [ ] An off-host copy exists on a different machine, checksums compared
 - [ ] Per-agent budgets set before leaving it unattended
+
+## 10. Prove the backup, don't assume it
+
+A backup you have never restored is a hypothesis. Two rules:
+
+- **A passing integrity check is not evidence of a usable backup.** `gzip -t` / `zstd -t` prove the
+  bytes decompress; they say nothing about whether the data is inside. A real case: a scheduled
+  guest backup verified clean, restored, and booted the app to a healthy `{"status":"ok"}` — while
+  containing **none** of the organisation's data, because the organisation had been created after
+  the backup ran.
+- **Verify by content, and scan the live database first as a positive control.** If your search
+  string does not match the live DB either, a zero-hit result on the backup means nothing.
+
+`GET /api/health` gives a fast content tell: `bootstrapStatus` is `bootstrap_pending` for an empty
+schema and `ready` once an organisation exists. If live says `ready` and your restore says
+`bootstrap_pending`, that restore point predates the business.
+
+A fixed-hour backup schedule leaves a window: anything created after that hour has no restore point
+until the next run. Take an on-demand backup after each significant change, and keep a copy on a
+**different machine** — an archive on another disk of the same host still dies with the host.
+
+Full procedure, the drill traps (restore-vs-`pct status` race, fresh MAC, disabling the VPN before
+networking, the Compose project-directory rule), and the checklist are in
+`references/backup-and-restore-drill.md`.
 
 ## References
 
@@ -259,3 +286,5 @@ is the only thing between an agent loop and a large bill.
   source location where one exists
 - `references/hermes-gateway-adapter.md` — the adapter's contract in full: fields, probes, network
   topology examples
+- `references/backup-and-restore-drill.md` — what to back up, how to verify a backup by content,
+  and how to run a restore drill without disturbing the live instance

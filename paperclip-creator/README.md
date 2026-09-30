@@ -18,7 +18,8 @@ guessing, no "try this and see".
 | `SKILL.md` | The skill: decisions, deployment steps, HTTPS requirement, route structure, agent wiring, cost reality, security must-dos, verification checklist |
 | `references/configuration-traps.md` | Twelve failures as **symptom → cause → fix**, each with the source location where one exists |
 | `references/hermes-gateway-adapter.md` | The `hermes_gateway` adapter contract: payload fields, the probes it makes, profile routing, network topologies |
-| `MANIFEST.sha256` | SHA-256 of `SKILL.md` and the two references — verify your copy with `sha256sum -c MANIFEST.sha256` |
+| `references/backup-and-restore-drill.md` | What to back up, how to verify a backup **by content**, and how to run a restore drill without disturbing the live instance |
+| `MANIFEST.sha256` | SHA-256 of `SKILL.md` and the three references — verify your copy with `sha256sum -c MANIFEST.sha256` |
 | `README.md` | This file |
 
 ## Quick Install
@@ -28,7 +29,7 @@ Copy-paste this to your Hermes agent (any profile):
 ```text
 I want to install the paperclip-creator skill from github.com/ciberjohn/Hermes-Skills.
 Copy the whole paperclip-creator/ folder — SKILL.md, README.md, MANIFEST.sha256, and every file
-in references/ (configuration-traps.md, hermes-gateway-adapter.md) — into
+in references/ (configuration-traps.md, hermes-gateway-adapter.md, backup-and-restore-drill.md) — into
 ~/.hermes/skills/devops/paperclip-creator/.
 
 Then confirm the copy is intact before anything else:
@@ -63,6 +64,9 @@ Self-hosting Paperclip is straightforward until it is not, and the failure modes
   — a protection, not a defect.
 - A build monitor reports failure because BuildKit **echoes Dockerfile commands**, and one of them
   contains the word `ERROR`.
+- A backup that passes every integrity check, restores cleanly and boots to a **healthy API** can
+  still contain none of your data, because the data was created *after* the backup ran. Archive
+  integrity is not backup validity.
 
 Each of those has cost somebody an afternoon. The reference files exist so it costs you five
 minutes.
@@ -111,7 +115,7 @@ I get "org non existent" in Paperclip. Work out the correct URL from the source 
 
 ## Maintenance Note
 
-`MANIFEST.sha256` covers `SKILL.md` and the two files in `references/`. **If you edit any of them,
+`MANIFEST.sha256` covers `SKILL.md` and the three files in `references/`. **If you edit any of them,
 regenerate the manifest in the same commit** — a stale manifest makes a correct copy fail its own
 integrity check, which is the worst possible failure because it casts doubt on the file rather than
 the checksum:
