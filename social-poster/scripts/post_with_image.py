@@ -33,6 +33,8 @@ CONFIG_PATH = os.path.join(HOME, ".social-poster", "config.json")
 LI_VERSION = "202601"
 CO_URN = "urn:li:organization:106478606"          # Coffee and Bytes
 CO_NAME = "Coffee and Bytes"
+CO_TITLE = "CyberMonday EP008: Humanity's Zero-Day"
+CO_DESC = "CyberMonday EP008 promo card"
 UA = "SocialPoster/1.0 (+ciberjohn)"
 
 
@@ -145,7 +147,8 @@ def post_x(text, image, vault, cfg):
 
 
 # ---------------------------------------------------------------- LinkedIn
-def post_linkedin(text, image, vault):
+def post_linkedin(text, image, vault, media_title=CO_TITLE, media_description=CO_DESC,
+                  company_mention="required"):
     """Image post via the legacy assets + ugcPosts flow.
 
     /rest/posts returns HTTP 500 for every active LinkedIn-Version on this app,
@@ -185,9 +188,9 @@ def post_linkedin(text, image, vault):
 
     commentary = {"text": text}
     idx = text.find(CO_NAME)
-    if idx < 0:
+    if idx < 0 and company_mention == "required":
         return f"text must contain '{CO_NAME}' for the company mention"
-    if text.count(CO_NAME) == 1:
+    if idx >= 0 and text.count(CO_NAME) == 1:
         commentary["attributes"] = [{
             "start": idx, "length": len(CO_NAME),
             "value": {"com.linkedin.common.CompanyAttributedEntity": {"company": CO_URN}}}]
@@ -198,9 +201,9 @@ def post_linkedin(text, image, vault):
             "shareCommentary": commentary,
             "shareMediaCategory": "IMAGE",
             "media": [{"status": "READY",
-                       "description": {"text": "CyberMonday EP008 promo card"},
+                       "description": {"text": media_description},
                        "media": asset,
-                       "title": {"text": "CyberMonday EP008: Humanity's Zero-Day"}}]}},
+                       "title": {"text": media_title}}]}},
         "visibility": {"com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"},
     }
     r = req("https://api.linkedin.com/v2/ugcPosts", method="POST",
@@ -292,6 +295,9 @@ def main():
     ap.add_argument("--dir", required=True, help="dir holding <platform>.md files")
     ap.add_argument("--image", required=True)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--media-title", default=CO_TITLE)
+    ap.add_argument("--media-description", default=CO_DESC)
+    ap.add_argument("--company-mention", default="required", choices=["required", "auto"])
     args = ap.parse_args()
 
     vault = load(VAULT_PATH)
@@ -313,7 +319,10 @@ def main():
             if pl == "x":
                 out = post_x(text, image, vault, cfg)
             elif pl == "linkedin":
-                out = post_linkedin(text, image, vault)
+                out = post_linkedin(text, image, vault,
+                                    media_title=args.media_title,
+                                    media_description=args.media_description,
+                                    company_mention=args.company_mention)
             elif pl == "bluesky":
                 out = post_bluesky(text, image, vault)
             elif pl == "mastodon":
